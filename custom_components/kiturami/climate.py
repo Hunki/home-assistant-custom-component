@@ -143,7 +143,7 @@ class DeviceAPI:
         self.is_alive = Throttle(MIN_TIME_BETWEEN_UPDATES)(self.is_alive)
 
     async def is_alive(self):
-        url = '{}/device/isAliveNormal'.format(KITURAMI_API_URL)
+        url = '{}/device/isAlive'.format(KITURAMI_API_URL)
         args = {
             'nodeId': self.krb.node_id,
             'parentId': '1'
@@ -253,10 +253,13 @@ class Kiturami(ClimateEntity):
     def available(self):
         """Return True if entity is available."""
         alive = self.device.alive
+
+        _LOGGER.debug("alive: %s", alive)
+
         if not alive:
             return False
-        return alive['deviceStat'] and alive['deviceStatus'] and alive[
-            'isAlive']
+        return alive['message']
+        #return alive['deviceStat'] and alive['deviceStatus'] and alive['isAlive']
 
     @property
     def temperature_unit(self):
