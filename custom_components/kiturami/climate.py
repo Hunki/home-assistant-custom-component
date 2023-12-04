@@ -89,8 +89,7 @@ class KrbAPI:
                    'AUTH-KEY': self.auth_key}
         try:
             response = await self.session.post(url, headers=headers, json=args, timeout=10)
-            _LOGGER.warn('JSON Request: %s\nJSON Response: %s', args, await response.text())
-            #_LOGGER.warn('JSON Response: %s', await response.text())
+            _LOGGER.debug('JSON Request: %s\nJSON Response: %s', args, await response.text())
             return response
         except Exception as ex:
             _LOGGER.error('Failed to Kiturami API status Error: %s', ex)
@@ -377,7 +376,6 @@ class Kiturami(ClimateEntity):
 
     async def async_update(self):
         """Retrieve latest state."""
-        _LOGGER.warn("Call async_update")
         await self.device.is_alive()
         await asyncio.sleep(1)
         self.result = await self.device.device_mode_info()
