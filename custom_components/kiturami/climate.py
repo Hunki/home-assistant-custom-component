@@ -209,7 +209,7 @@ class Kiturami(ClimateEntity):
         """Initialize the thermostat."""
         self._name = name
         self.device = device
-        self.result = {}
+        self.result = {'deviceMode':'0106'}
 
     @property
     def unique_id(self):
