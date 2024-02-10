@@ -11,10 +11,7 @@ from datetime import timedelta
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.climate import (
-    ClimateEntity, PLATFORM_SCHEMA)
-from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT, HVAC_MODE_OFF, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_PRESET_MODE)
+    ClimateEntity, PLATFORM_SCHEMA, ClimateEntityFeature, HVACMode)
 from homeassistant.const import (
     CONF_NAME, CONF_USERNAME, CONF_PASSWORD, TEMP_CELSIUS, ATTR_TEMPERATURE)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -205,6 +202,8 @@ class DeviceAPI:
 
 class Kiturami(ClimateEntity):
 
+    _enable_turn_on_off_backwards_compatibility = False
+
     def __init__(self, name, device):
         """Initialize the thermostat."""
         self._name = name
@@ -245,9 +244,9 @@ class Kiturami(ClimateEntity):
         """Return the list of supported features."""
         features = 0
         if self.is_on:
-            features |= SUPPORT_PRESET_MODE
+            features |= ClimateEntityFeature.PRESET_MODE
         if self.preset_mode == STATE_HEAT:
-            features |= SUPPORT_TARGET_TEMPERATURE
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE
         return features
 
     @property
@@ -303,15 +302,15 @@ class Kiturami(ClimateEntity):
         Need to be one of HVAC_MODE_*.
         """
         if self.is_on:
-            return HVAC_MODE_HEAT
-        return HVAC_MODE_OFF
+            return HVACMode.HEAT
+        return HVACMode.OFF
 
     @property
     def hvac_modes(self):
         """Return the list of available hvac operation modes.
         Need to be a subset of HVAC_MODES.
         """
-        return [HVAC_MODE_OFF, HVAC_MODE_HEAT]
+        return [HVACMode.OFF, HVACMode.HEAT]
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -369,9 +368,9 @@ class Kiturami(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        if hvac_mode == HVAC_MODE_HEAT:
+        if hvac_mode == HVACMode.HEAT:
             await self.device.turn_on()
-        elif hvac_mode == HVAC_MODE_OFF:
+        elif hvac_mode == HVACMode.OFF:
             await self.device.turn_off()
 
     async def async_update(self):
