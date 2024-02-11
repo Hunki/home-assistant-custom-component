@@ -6,6 +6,7 @@ https://home-assistant.io/components/kiturami/
 import hashlib
 import logging
 import asyncio
+import threading
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
@@ -40,6 +41,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PASSWORD): cv.string
 })
 
+api_send_lock = threading.Lock()
 
 async def async_setup_platform(hass, config, async_add_entities,
                                discovery_info=None):
@@ -159,13 +161,17 @@ class DeviceAPI:
         return await self.krb.post(url, args)
 
     async def device_control(self, message_id, message_body):
+        api_send_lock.acquire()
         url = '{}/device/deviceControl'.format(KITURAMI_API_URL)
         args = {
             'nodeIds': [self.krb.node_id],
             'messageId': message_id,
             'messageBody': message_body
         }
-        return await self.krb.post(url, args)
+        response = await self.krb.post(url, args)
+        await asyncio.sleep(1)
+        api_send_lock.release()
+        return response
 
     async def turn_on(self):
         await self.device_control('0101', '{}0000000001'.format(self.slave_id))
@@ -208,7 +214,7 @@ class Kiturami(ClimateEntity):
         """Initialize the thermostat."""
         self._name = name
         self.device = device
-        self.result = {'deviceMode':'0106'}
+        self.result = {'deviceMode':''}
 
     @property
     def unique_id(self):
@@ -258,8 +264,7 @@ class Kiturami(ClimateEntity):
 
         if not alive:
             return False
-        return alive['message']
-        #return alive['deviceStat'] and alive['deviceStatus'] and alive['isAlive']
+        return alive['message'] == "Success."
 
     @property
     def temperature_unit(self):
