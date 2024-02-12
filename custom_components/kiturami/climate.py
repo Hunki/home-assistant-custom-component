@@ -6,7 +6,7 @@ https://home-assistant.io/components/kiturami/
 import hashlib
 import logging
 import asyncio
-import threading
+#import threading
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
@@ -41,7 +41,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PASSWORD): cv.string
 })
 
-api_send_lock = threading.Lock()
+#api_send_lock = threading.Lock()
 
 async def async_setup_platform(hass, config, async_add_entities,
                                discovery_info=None):
@@ -161,7 +161,7 @@ class DeviceAPI:
         return await self.krb.post(url, args)
 
     async def device_control(self, message_id, message_body):
-        api_send_lock.acquire()
+        #api_send_lock.acquire()
         url = '{}/device/deviceControl'.format(KITURAMI_API_URL)
         args = {
             'nodeIds': [self.krb.node_id],
@@ -170,7 +170,7 @@ class DeviceAPI:
         }
         response = await self.krb.post(url, args)
         await asyncio.sleep(1)
-        api_send_lock.release()
+        #api_send_lock.release()
         return response
 
     async def turn_on(self):
