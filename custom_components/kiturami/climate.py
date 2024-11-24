@@ -188,7 +188,8 @@ class DeviceAPI:
 
     async def mode_bath(self):
         response = await self.device_mode_info('0105')
-        value = response['value']
+        # value = response['value']
+        value = '{:X}'.format(int(70))
         body = '00000000{}00'.format(value)
         await self.device_control('0105', body)
 
